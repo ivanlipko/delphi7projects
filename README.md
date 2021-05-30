@@ -1,2 +1,2 @@
 # delphi7projects
-Oldschool projects on Delphi7 (2012-2013)
+Old school projects on Delphi7 are made in 2012-2013.
