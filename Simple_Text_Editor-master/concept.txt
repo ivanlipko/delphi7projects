@@ -1,0 +1,108 @@
+unit Unit1;
+
+interface
+
+uses
+  Windows, Messages, ..., ImgList, ToolWin;
+
+type
+  TForm1 = class(TForm)
+    MainMenu1: TMainMenu;
+		File1: TMenuItem;
+		New1: TMenuItem;
+		Open1: TMenuItem;
+		Save1: TMenuItem;
+		Close1: TMenuItem;
+		Font1: TMenuItem;
+	...	// другие поля и/или компоненты
+    PageControl1: TPageControl;
+    ToolBar1: TToolBar;
+		ToolButton1: TToolButton;
+		...
+		ToolButton10: TToolButton;
+    ImageList1: TImageList;
+    FontDialog1: TFontDialog;
+    OpenDialog1: TOpenDialog;
+    SaveDialog1: TSaveDialog;
+    procedure New1Click(Sender: TObject);
+    procedure Save1Click(Sender: TObject);
+    procedure Open1Click(Sender: TObject);
+    procedure Close1Click(Sender: TObject);
+    procedure Font1Click(Sender: TObject);
+	...	//другие функции и процедуры
+
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end; // закончили описание класса
+
+const
+   M = 10;	// длина массива
+   
+var
+  Form1: TForm1;	// Form1 - объект, представитель класса TForm1
+
+  TabSheets: array [0..M] of TTabSheet;	// массив вкладок
+  RichEdits: array [0..M] of TRichEdit; // массив полей текста
+  TabsCount : Byte = 0;					// текущее количество элементов массивов
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1.New1Click(Sender: TObject);
+begin
+   TabSheets[TabsCount] := TTabSheet.Create(PageControl1); // владельцем TabSheets[TabsCount] является PageControl1
+   TabSheets[TabsCount].Caption := 'New Tab Sheet';
+   TabSheets[TabsCount].PageControl := PageControl1; // закладка находится на PageControl1
+
+   RichEdits[TabsCount] := TRichEdit.Create(TabSheets[TabsCount]);  // владельцем RichEdits[TabsCount] является TabSheets[TabsCount]
+   with RichEdits[TabsCount] do begin
+       Visible := true;
+       Align := alClient;             // размещаем по размеру окна родителя
+       Name := 'RichEdit'+IntToStr(PageControl1.PageCount);
+       ScrollBars := ssVertical;
+       Text:='';
+       Parent := TabSheets[TabsCount];  // RichEdits[TabsCount] находится  на TabSheets[TabsCount]
+    end;
+    PageControl1.ActivePageIndex := PageControl1.PageCount - 1;	// последняя вкладка будет активной
+   TabsCount := TabsCount + 1;
+end;
+
+procedure TForm1.Save1Click(Sender: TObject);
+begin
+  if PageControl1.ActivePageIndex < 0 then exit;	// если нет вкладок - не продолжаем
+  if SaveDialog1.Execute
+    then RichEdits[ PageControl1.ActivePageIndex ].Lines.SaveToFile(SaveDialog1.FileName);
+end;
+
+procedure TForm1.Open1Click(Sender: TObject);
+begin
+  if OpenDialog1.Execute then begin
+    New1Click(Sender);						// создаём новую вкладку для открывающегося файла
+    RichEdits[ PageControl1.ActivePageIndex ].Lines.LoadFromFile(OpenDialog1.FileName);
+  end;
+end;
+
+procedure TForm1.Close1Click(Sender: TObject);
+begin
+  if PageControl1.ActivePageIndex < 0 then exit;
+  PageControl1.Pages[ PageControl1.ActivePageIndex ].Free	// закрываем вкладку
+end;
+
+procedure TForm1.Font1Click(Sender: TObject);
+begin
+  if FontDialog1.Execute then
+    with RichEdits[ PageControl1.ActivePageIndex ].SelAttributes do begin	// ставим атрибуты выделенному тексту
+      Color := FontDialog1.Font.Color;
+      Name := FontDialog1.Font.Name;
+      Size := FontDialog1.Font.Size;
+      Style := FontDialog1.Font.Style;    
+    end;
+  RichEdits[PageControl1.ActivePageIndex ].SetFocus;
+end;
+
+	...	// другие процедуры
+
+end.
